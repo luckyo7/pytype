@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link type="text/css" rel="stylesheet" href="../../static/styles.css">
+    <meta charset="UTF-8">
+    <title>PieType</title>
+</head>
+<body>
+<!--Going to be used for looking at previous attempts-->
+<!--Needs to be passed an array of words, with each letter having a character field and a class field-->
+<!--Also needs the WPM, RawWPM, and Accuracy stats-->
+{% load attempts %}
+<div id="header">
+    <div id="title">
+        <h1 id="headTitle" onclick="window.location.href='../'">PieType</h1>
+        <button id="about" onclick="window.location.href='../about'">more info</button>
+        <h3 id="timer">{{ time }}</h3>
+    </div>
+    <div id="subtitle">
+        <h2>By Evan, Saaketh, and Mads</h2>
+        <button id="arrow" onclick="window.location.href='../'">=></button>
+    </div>
+    <h3>timer starts when you begin typing</h3>
+    <h3>clicking the arrow will restart the test</h3>
+</div>
+
+<div id="words">
+    {% for word in sentence %}
+    <div class="word">
+        {% for char in word %}
+        <letter class="{{char|index:1}}">{{char|index:0}}</letter>
+        {% endfor %}
+        <!--        <letter class="">&nbsp;</letter>-->
+    </div>
+    {% endfor %}
+</div>
+
+<div id="stats">
+    <div class="statDiv" id="rawWPMDiv">
+        <stats id="rawWPMTitle">Raw WPM</stats>
+        <h3 id="rawWPM">{{rawWPM}}</h3>
+    </div>
+    <div class="statDiv" id="wpmDiv">
+        <stats id="wpmTitle">Words Per Minute</stats>
+        <h3 id="wpm">{{wpm}}</h3>
+    </div>
+    <div class="statDiv" id="accuracyDiv">
+        <stats id="accuracyTitle">Accuracy</stats>
+        <h3 id="accuracy">{{accuracy}}%</h3>
+    </div>
+</div>
+
+</body>
+</html>

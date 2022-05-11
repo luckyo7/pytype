@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        var sentence = '{{ sentence|escapejs }}';
+        var attemptID = '{{attemptID}}'
+    </script>
+    <link type="text/css" rel="stylesheet" href="../../static/styles.css">
+    <meta charset="UTF-8">
+    <title>PieType</title>
+</head>
+<body>
+{% block content %}
+
+    {% endblock content %}
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+    {% block javascript %}
+
+    {% endblock javascript %}
+<div id="header">
+    <div id="title">
+        <h1 id="headTitle" onclick="window.location.href='../'">PieType</h1>
+        <button id="about" onclick="window.location.href='../about'">more info</button>
+        <h3 id="timer">00:00</h3>
+    </div>
+    <div id="subtitle">
+        <h2>By Evan, Saaketh, and Mads</h2>
+        <button id="arrow">=></button>
+    </div>
+    <h3>
+        timer starts when you begin typing<br>
+        &lt;ctrl + r&gt; will restart the test<br>
+        add ?length=&lt;num&gt; to the url to change wordcount
+    </h3>
+</div>
+<!--Sentence -> Word -> Character {default, correct, incorrect classes}-->
+<div id="words">
+    {% for word in sentence %}
+        <div class="word">
+        {% for char in word %}
+            <letter class="">{{char}}</letter>
+        {% endfor %}
+<!--        <letter class="">&nbsp;</letter>-->
+        </div>
+    {% endfor %}
+</div>
+
+<div id="stats">
+    <div class="statDiv" id="rawWPMDiv">
+        <stats id="rawWPMTitle">Raw WPM</stats>
+        <h3 id="rawWPM">0</h3>
+    </div>
+    <div class="statDiv" id="wpmDiv">
+        <stats id="wpmTitle">Words Per Minute</stats>
+        <h3 id="wpm">0</h3>
+    </div>
+    <div class="statDiv" id="accuracyDiv">
+        <stats id="accuracyTitle">Accuracy</stats>
+        <h3 id="accuracy">0%</h3>
+    </div>
+</div>
+
+<input type="text" id="input" onblur="myFocusFunction()" autofocus/>
+
+<script>
+    function init() {
+        // Clear forms here
+        document.getElementById("input").value = "";
+        document.getElementsByClassName("word")[0].className = "word active";
+
+        document.getElementById("stats").hidden = true; // Hide stats for now
+    }
+    window.onload = init;
+
+    let words = document.getElementById("words");
+    words.onload = () => {
+        document.body.style.height = (window.innerHeight - 17) + "px";
+    }
+
+    let input = document.getElementById("input");
+
+    function calcStats(timeElapsed, endSentence) {
+        // Raw WPM = ((total characters)/5)/time
+        let charactersTyped = 0
+        // Calculate the total number of correct characters typed
+        let words = document.getElementsByClassName("word");
+        for (const word of words) {
+            let letters = word.children
+            for (const letter of letters) {
+                if (letter.className === "correct") {
+                    charactersTyped++;
+                }
+            }
+        }
+
+        let grossWPM = (charactersTyped/4)/timeElapsed
+
+        // Net WPM = GrossWPM - (Uncorrected Errors)/time
+        let errors = 0
+        for (const word of words) {
+            let letters = word.children
+            for (const letter of letters) {
+                if (letter.className === "wrong" || letter.className === "extra") {
+                    errors++;
+                }
+            }
+        }
+        let netWPM = grossWPM - (errors/timeElapsed)
+
+        let sub = sentence.substring(1, sentence.length - 1)
+        let noApostrophe = sub.replaceAll('\'', '');
+        let array = noApostrophe.split(", ");
+
+        // Accuracy = charactersTyped / totalCharacters
+        let totalCharacters = 0;
+        for (const word of array) {
+            totalCharacters += word.length;
+        }
+        let accuracy = (charactersTyped - errors)/charactersTyped*100
+
+        showStats(Math.max(0, netWPM), Math.max(0, grossWPM), Math.max(0, accuracy))
+
+        if (endSentence) {
+            saveAttempt(Math.max(0, netWPM), Math.max(0, grossWPM), Math.max(0, accuracy))
+        }
+    }
+
+    function showStats(wpm, rawWPM, accuracy) {
+        let stats = document.getElementById("stats");
+        stats.hidden = false;
+
+        let wpmStat = document.getElementById("wpm");
+        wpmStat.innerText = wpm.toFixed(0);
+
+        let rawWPMStat = document.getElementById("rawWPM");
+        rawWPMStat.innerText = rawWPM.toFixed(0);
+
+        let accuracyStat = document.getElementById("accuracy");
+        accuracyStat.innerText = accuracy.toFixed(0) + "%";
+    }
+
+    var startTime = null
+    input.oninput = (e) => {
+        let val = e.target.value;
+        let lastChar = e.data;
+
+        if (!startTime) {
+            console.log("started typing")
+            startTime = Date.now();
+        }
+        let currentWord = document.getElementsByClassName("word active")[0];
+        let currentLetter = null;
+
+        // If there is no word, we must be done
+        if (!currentWord) {
+            endSentence();
+        }
+
+        for (let letter of currentWord.children) {
+            if (letter.className !== "correct" && letter.className !== "corrected" && letter.className !== "wrong") {
+                currentLetter = letter;
+                break;
+            }
+        }
+
+        // Player has typed where there is no letter, make a new one
+        if (!currentLetter || currentLetter.className === "extra") {
+            // Used backspace
+            if (!lastChar) {
+                let lastLetter = currentWord.lastElementChild
+                if (lastLetter.className === "extra") {
+                    lastLetter.remove();
+                    return;
+                } else {
+                    // Reset letter
+                    lastLetter.className = "";
+                    return;
+                }
+            } else if (lastChar === " ") {
+                // Pressed spacebar
+                incrementWord(currentWord);
+                return;
+            }
+            let letter = document.createElement("letter");
+            let text = document.createTextNode(lastChar);
+            letter.appendChild(text);
+            letter.className = "extra";
+
+            currentWord.appendChild(letter);
+            return;
+        }
+
+        function incrementWord(currentWord) {
+            // Reset the class of the word back to normal
+            currentWord.className = "word";
+
+            let nextWord = currentWord.nextElementSibling;
+            // If there isn't another word, the sentence has been completed
+            if (nextWord) {
+                nextWord.className = "word active";
+            } else {
+                endSentence();
+            }
+            return nextWord;
+        }
+
+        function decrementWord(currentWord) {
+            // Reset the class of the word back to normal
+            currentWord.className = "word";
+
+            let previousWord = currentWord.previousElementSibling;
+            // If there isn't another word, the sentence has been completed
+            if (previousWord) {
+                previousWord.className = "word active";
+            }
+            return previousWord;
+        }
+
+        function endSentence() {
+            let timer = document.getElementById("timer");
+            if (timer.stop) { return } // If we already stopped the attempt, don't keep trying
+            timer.stop = true
+
+            var endTime = Date.now();
+            // Time elapsed in minutes
+            var timeElapsed = (endTime - startTime)/(60000);
+
+            calcStats(timeElapsed, true)
+        }
+        if (lastChar === " ") {
+            let nextWord = incrementWord(currentWord);
+            if (!nextWord) {
+                console.log("sentence over");
+                endSentence();
+            }
+            return;
+        }
+
+        // Used a <backspace>
+        if (!lastChar) {
+            let previousLetter = currentLetter.previousElementSibling;
+            if (previousLetter) {
+                previousLetter.className = ""; // Allow it to be edited again
+            } else {
+                currentWord = decrementWord(currentWord);
+                if (!currentWord) {return}
+                let previous = currentWord.lastElementChild;
+                if (previous.className === "extra") {
+                    previous.remove()
+                } else {
+                    previous.className = "";
+                }
+            }
+            return;
+        }
+
+        if (currentLetter.textContent === lastChar) {
+            currentLetter.className = "correct";
+
+            // If there is no letter after this, then the word is over
+            if (!currentLetter.nextElementSibling) {
+                // let nextWord = incrementWord(currentWord);
+                // if (!nextWord) {
+                //     console.log("sentence over")
+                // }
+            }
+        } else {
+            currentLetter.className = "wrong";
+        }
+    }
+    function myFocusFunction(){
+      let myInput = document.getElementById('input');
+      setTimeout(function() {
+           myInput.focus();
+      }, 100);
+    }
+
+    let updateInterval = 100; // In miliseconds
+    var handleTimer = setInterval(() => {
+        if (!startTime) {
+            return;
+        }
+        let timer = document.getElementById("timer");
+        if (timer.stop) { return }
+
+        let time = Date.now() - (startTime);
+        let text = new Date(time * 60).toISOString().substr(11, 8)
+        timer.innerText = text;
+
+        calcStats(time/60000); // Update the stats counters
+    }, updateInterval);
+
+
+    function csrfSafeMethod(method) {
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    function saveAttempt(wpm, rawWPM, accuracy) {
+        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+
+        // Need to define wordArray here
+        // Going to be an array of words, each word composing of letters with fields for value and class
+        let words = document.getElementById("words");
+        let wordArray = "";
+        for (const word of words.children) {
+            for (const letter of word.children) {
+                wordArray += (letter.innerText + "," + letter.className + " ")
+            }
+            wordArray += ";"
+        }
+        // $.ajaxSetup({
+        //     beforeSend: function (xhr, settings) {
+        //         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+        //             xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        //         }
+        //     }
+        // });
+        //
+        // $.ajax({
+        //     url: "/pietype/save",
+        //     data: {
+        //         'sentence': wordArray,
+        //         'rawWPM': rawWPM,
+        //         'wpm': wpm,
+        //         'accuracy': accuracy,
+        //         'attemptID': attemptID
+        //     },
+        //     success: function (res, status) {
+        //         alert(res);
+        //         alert(status);
+        //     },
+        //     error: function (res) {
+        //         alert(res.status);
+        //     }
+        // });
+        let time = document.getElementById("timer").innerText;
+        // let post = JSON.stringify({
+        //     'sentence': wordArray,
+        //     'rawWPM': rawWPM,
+        //     'wpm': wpm,
+        //     'accuracy': accuracy,
+        //     'attemptID': attemptID,
+        //     'time': time,
+        // });
+
+        let post = new FormData()
+        post.append("sentence", wordArray)
+        post.append("rawWPM", rawWPM.toFixed(0))
+        post.append("wpm", wpm.toFixed(0))
+        post.append("accuracy", accuracy.toFixed(0))
+        post.append("attemptID", attemptID)
+        post.append("time", time)
+
+        let xhr = new XMLHttpRequest()
+
+        xhr.open('POST', '../../pietype/save/', true)
+        // xhr.setRequestHeader('Content-type', 'application/json; charset=UTF-8')
+        xhr.send(post);
+        console.log(post)
+
+        xhr.onload = function () {
+            if(xhr.status === 201) {
+                console.log("Post successfully created!")
+            }
+        }
+    }
+</script>
+</body>
+</html>
