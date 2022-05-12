@@ -81,6 +81,11 @@ a {
  background-color: rgba(0, 0, 0, 0);
  border-color: rgba(0, 0, 0, 0);
 }
+a:hover {
+ color: var(--text-color-subtitle);
+ transition: color;
+ transition-duration: 2s;
+}
 #about {
  cursor: pointer;
  margin-left: 5px;
