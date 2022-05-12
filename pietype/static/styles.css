@@ -44,8 +44,9 @@ h1 {
 }
 
 h1:hover {
- animation: jump 2s;
- transition: animation;
+ transform: translate(0px, -5px);
+ /*animation: jump 2s;*/
+ transition: transform;
  transition-duration: 1s;
 }
 
@@ -99,9 +100,10 @@ a:hover {
  border-color: rgba(0, 0, 0, 0);
 }
 #about:hover {
- animation: jump 2s;
+ transform: translate(0px, -5px);
+ /*animation: jump 2s;*/
  color: var(--button-color-highlighted);
- transition: color;
+ transition: color, transform;
  transition-duration: 1s;
 }
 
