@@ -111,10 +111,6 @@ a:hover {
  margin: auto 0 5px auto;
 }
 
-#timer:hover {
-  animation: jump 2s;
-}
-
 h2 {
  color: var(--text-color-subtitle);
  margin: 0 0 0 0;
