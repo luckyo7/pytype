@@ -12,4 +12,4 @@ class Attempt(models.Model):
     accuracy = models.IntegerField("Accuracy")
     datetime = models.DateTimeField("Date", auto_now=True)
     time = models.CharField("Time Elapsed", max_length=20, default="00:00")
-    sentence = models.CharField("Sentence", max_length = 4000)
+    sentence = models.CharField("Sentence", max_length=4000)

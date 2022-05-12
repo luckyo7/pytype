@@ -87,6 +87,18 @@ a:hover {
  transition: color;
  transition-duration: 2s;
 }
+
+#reset {
+ cursor: pointer;
+ text-decoration: underline;
+}
+
+#reset:hover {
+ color: var(--text-color-subtitle);
+ transition: color;
+ transition-duration: 1s;
+}
+
 #about {
  cursor: pointer;
  margin-left: 5px;
@@ -95,10 +107,12 @@ a:hover {
  text-decoration: underline;
  color: var(--text-color);
  font-size: 18px;
+ font-weight: bold;
  font-family: "JetBrains Mono ExtraBold", monospace;
  background-color: rgba(0, 0, 0, 0);
  border-color: rgba(0, 0, 0, 0);
 }
+
 #about:hover {
  transform: translate(0px, -5px);
  /*animation: jump 2s;*/
@@ -131,6 +145,10 @@ h3.nojump {
 animation: none;
 }
 
+#highScoreDiv {
+ display: flex;
+}
+
 #stats {
  display: flex;
  text-align: center;
@@ -160,7 +178,7 @@ body {
  height:fit-content;
  padding-bottom:1em;
  user-select:none;
- font-size: 30px;
+ font-size: 35px;
  margin: 5% auto auto auto;
  width:50%
 }
