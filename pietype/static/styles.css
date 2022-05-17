@@ -41,6 +41,11 @@ h1 {
  width: fit-content;
  font-family: "JetBrains Mono ExtraBold", monospace;
  cursor: pointer;
+ transition: transform 0.5s linear; /* vendorless fallback */
+ -o-transition: transform 0.5s linear; /* opera */
+ -ms-transition: transform 0.5s linear; /* IE 10 */
+ -moz-transition: transform 0.5s linear; /* Firefox */
+ -webkit-transition: transform 0.5s linear; /*safari and chrome */
 }
 
 h1:hover {
@@ -113,6 +118,12 @@ a:hover {
  font-family: "JetBrains Mono ExtraBold", monospace;
  background-color: rgba(0, 0, 0, 0);
  border-color: rgba(0, 0, 0, 0);
+ transition: transform 0.5s linear; /* vendorless fallback */
+ /* vendorless fallback */
+ -o-transition: transform 0.5s linear; /* opera */
+ -ms-transition: transform 0.5s linear; /* IE 10 */
+ -moz-transition: transform 0.5s linear; /* Firefox */
+ -webkit-transition: transform 0.5s linear; /*safari and chrome */
 }
 
 #about:hover {
