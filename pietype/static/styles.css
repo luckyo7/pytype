@@ -97,6 +97,8 @@ a:hover {
  color: var(--text-color-subtitle);
  transition: color;
  transition-duration: 1s;
+ margin-right: auto;
+ width: fit-content;
 }
 
 #about {
